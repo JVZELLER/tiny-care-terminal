@@ -44,11 +44,21 @@ defmodule TinyCareTerminal.Commands.ListCommitHistory do
   end
 
   defp list_commits(path, since_opt) do
-    git_opts = ["log", "--pretty=format:#{@format}", "--relative-date"] ++ since_opt
+    user = get_git_user(path)
+
+    git_opts =
+      ["log", "--pretty=format:#{@format}", "--relative-date", "--author=#{user}"] ++ since_opt
 
     "git"
     |> System.cmd(git_opts, cd: path, stderr_to_stdout: true)
     |> parse_commits()
+  end
+
+  defp get_git_user(path) do
+    case System.cmd("git", ["config", "user.email"], cd: path, stderr_to_stdout: true) do
+      {user, 0} -> user
+      _error -> ""
+    end
   end
 
   defp parse_commits({"", 0}), do: []
