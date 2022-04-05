@@ -1,18 +1,30 @@
 defmodule TinyCareTerminal do
   @moduledoc """
-  Documentation for `TinyCareTerminal`.
+  The main application.
   """
 
-  @doc """
-  Hello world.
+  @behaviour Ratatouille.App
 
-  ## Examples
+  import Ratatouille.View
 
-      iex> TinyCareTerminal.hello()
-      :world
+  alias TinyCareTerminal.App.Views.CommitHistory
 
-  """
-  def hello do
-    :world
+  def init(context) do
+    %{window: context.window}
+  end
+
+  def update(model, msg) do
+    case msg do
+      _ -> model
+    end
+  end
+
+  def render(model) do
+    title = label(content: " Elixir Tiny Care Terminal")
+    blank_line = label(content: "")
+
+    {today, week} = CommitHistory.render(model, model.window)
+
+    view([title, blank_line, today, week])
   end
 end
