@@ -1,4 +1,4 @@
-defmodule TinyCareTerminal.App.Models.Commit do
+defmodule TinyCareTerminal.Models.Commit do
   @moduledoc """
   Represents a Git commit.
   """

@@ -1,12 +1,12 @@
-defmodule TinyCareTerminal.App.Models.CommitHistory do
+defmodule TinyCareTerminal.Models.CommitHistory do
   @moduledoc """
   Represents the history of Git commits.
   """
-  alias TinyCareTerminal.App.Models.Commit
+  alias TinyCareTerminal.Models.Commit
 
-  defstruct today: [], last_week: []
+  defstruct today: [], last_week: [], repo_path: ""
 
-  @type t :: %__MODULE__{today: [Commit.t()], last_week: [Commit.t()]}
+  @type t :: %__MODULE__{today: [Commit.t()], last_week: [Commit.t()], repo_path: String.t()}
 
   @spec create(map()) :: CommitHistory.t()
   def create(params), do: struct(__MODULE__, params)
