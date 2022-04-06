@@ -9,32 +9,43 @@ defmodule TinyCareTerminal.App.Views.CommitHistory do
   alias TinyCareTerminal.Models.Commit
   alias TinyCareTerminal.Models.CommitHistory
 
-  @spec render(CommitHistory.t(), map()) :: {Element.t(), Element.t()}
-  def render(%CommitHistory{} = history, window) do
-    %{today: today_commits, last_week: last_week_commits, repo_path: path} = history
+  @default_today_opts [column_size: 6, title: " 📆  Today "]
+  @default_week_opts [column_size: 6, title: " 📆  Today ", height: :fill]
 
-    today_opts = [
-      column_size: 6,
-      height: round(window.height * 0.3),
-      title: " 📆  Today ",
-      path: path
-    ]
+  @spec render(map(), map()) :: {Element.t(), Element.t()}
+  def render(%{commit_history: %{git_repo?: false, repo_path: path}}, window) do
+    today =
+      render_no_git_repo(@default_today_opts ++ [height: round(window.height * 0.3), path: path])
 
-    last_week_opts = [
-      column_size: 6,
-      height: :fill,
-      title: " 🗓  Last Week ",
-      path: path
-    ]
-
-    today = render_commits(today_commits, today_opts)
-
-    week = render_commits(last_week_commits, last_week_opts)
+    week = render_no_git_repo(@default_week_opts ++ [path: path])
 
     {today, week}
   end
 
-  defp render_commits([], opts) do
+  def render(model, window) do
+    %{commit_history: %CommitHistory{} = commit_history, cursor_position: cursor_position} = model
+
+    today_opts =
+      [
+        height: round(window.height * 0.3),
+        path: commit_history.repo_path,
+        cursor_position: cursor_position
+      ] ++ @default_today_opts
+
+    last_week_opts =
+      [
+        path: commit_history.repo_path,
+        cursor_position: cursor_position
+      ] ++ @default_week_opts
+
+    today = render_commits(commit_history.today, today_opts)
+
+    week = render_commits(commit_history.last_week, last_week_opts)
+
+    {today, week}
+  end
+
+  defp render_no_git_repo(opts) do
     height = opts[:height]
     title = opts[:title]
     column_size = opts[:column_size]
@@ -64,22 +75,26 @@ defmodule TinyCareTerminal.App.Views.CommitHistory do
     title = opts[:title]
     column_size = opts[:column_size]
     path = opts[:path]
+    cursor_position = opts[:cursor_position]
+
+    cursor_position = min(cursor_position, length(commits) - 1)
 
     row do
       column(size: column_size) do
         panel(title: title, height: height) do
-          label(content: "Project path: #{path}", color: :green)
-          label(content: "")
+          label(content: "Project path: #{path}\n", color: :green)
 
-          row do
-            column(size: column_size) do
-              for %Commit{} = commit <- commits do
-                label do
-                  text(content: commit.hash, color: :red)
-                  text(content: " - ")
-                  text(content: commit.message)
-                  text(content: " ")
-                  text(content: commit.relative_date, color: :green)
+          viewport(offset_y: cursor_position) do
+            row do
+              column(size: column_size) do
+                for %Commit{} = commit <- commits do
+                  label do
+                    text(content: commit.hash, color: :red)
+                    text(content: " - ")
+                    text(content: commit.message)
+                    text(content: " ")
+                    text(content: commit.relative_date, color: :green)
+                  end
                 end
               end
             end

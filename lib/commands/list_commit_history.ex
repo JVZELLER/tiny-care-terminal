@@ -10,7 +10,7 @@ defmodule TinyCareTerminal.Commands.ListCommitHistory do
 
   @spec execute() :: CommitHistory.t()
   def execute do
-    (git_repo?() and list_commits()) || %CommitHistory{repo_path: path()}
+    (git_repo?() and list_commits()) || %CommitHistory{repo_path: path(), git_repo?: false}
   end
 
   defp git_repo? do
@@ -33,7 +33,8 @@ defmodule TinyCareTerminal.Commands.ListCommitHistory do
     CommitHistory.create(%{
       today: today_commits,
       last_week: last_week_commits,
-      repo_path: repo_path
+      repo_path: repo_path,
+      git_repo?: true
     })
   end
 
