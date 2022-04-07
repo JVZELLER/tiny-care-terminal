@@ -34,10 +34,9 @@ defmodule TinyCareTerminal do
   end
 
   def render(state) do
-    title = label(content: " Elixir Tiny Care Terminal\n")
+    commits = CommitHistory.render(state)
+    main_panel = panel([title: " Elixir Tiny Care Terminal", height: :fill], commits)
 
-    {today, week} = CommitHistory.render(state)
-
-    view([title, today, week])
+    view([main_panel])
   end
 end

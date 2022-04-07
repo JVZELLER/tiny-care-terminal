@@ -13,29 +13,26 @@ defmodule TinyCareTerminal.Views.CommitHistory do
 
   alias TinyCareTerminal.Views.Components.Pagination
 
-  @default_today_opts [column_size: 6, title: " 📆  Today ", page_size: 5]
-  @default_week_opts [column_size: 6, title: " 📆  Week ", page_size: 20, height: :fill]
+  @min_offset_y 6
+
+  @default_today_opts [column_size: 6, title: " 📆  Today "]
+  @default_week_opts [column_size: 6, title: " 📆  Week ", height: :fill]
 
   @spec render(State.t()) :: {Element.t(), Element.t()}
-  def render(%{commit_history: %{git_repo?: false, repo_path: path}, window: window}) do
-    today =
-      render_no_git_repo(@default_today_opts ++ [height: round(window.height * 0.3), path: path])
+  def render(%{commit_history: %{git_repo?: false, repo_path: path}}) do
+    no_repo = render_no_git_repo(@default_today_opts ++ [path: path])
 
-    week = render_no_git_repo(@default_week_opts ++ [path: path])
-
-    {today, week}
+    [no_repo]
   end
 
   def render(model) do
     %{
       commit_history: %CommitHistory{} = commit_history,
-      cursor_position: cursor_position,
-      window: window
+      cursor_position: cursor_position
     } = model
 
     today_opts =
       [
-        height: round(window.height * 0.3),
         path: commit_history.repo_path,
         cursor_position: cursor_position
       ] ++ @default_today_opts
@@ -50,11 +47,10 @@ defmodule TinyCareTerminal.Views.CommitHistory do
 
     week = render_commits(commit_history.last_week, last_week_opts)
 
-    {today, week}
+    [today, week]
   end
 
   defp render_no_git_repo(opts) do
-    height = opts[:height]
     title = opts[:title]
     column_size = opts[:column_size]
     path = opts[:path]
@@ -68,7 +64,7 @@ defmodule TinyCareTerminal.Views.CommitHistory do
 
     row do
       column(size: column_size) do
-        panel(title: title, height: height) do
+        panel(title: title, height: :fill) do
           label(
             content: content,
             color: :green
@@ -79,38 +75,42 @@ defmodule TinyCareTerminal.Views.CommitHistory do
   end
 
   defp render_commits(commits, opts) do
-    height = opts[:height]
     title = opts[:title]
     column_size = opts[:column_size]
     path = opts[:path]
     cursor_position = opts[:cursor_position]
-    page_size = opts[:page_size]
+    height = opts[:height] || Pagination.page_size() + @min_offset_y
 
     cursor_position = min(cursor_position, length(commits) - 1)
-    page_number = Pagination.page(cursor_position, page_size) + 1
-    total_pages = Pagination.total_pages(commits, page_size)
+    page_size = Pagination.page_size()
+    page_number = Pagination.page(cursor_position) + 1
+    total_pages = Pagination.total_pages(commits)
 
-    commits_to_display = Pagination.page_slice(commits, cursor_position, page_size)
+    commits_to_display = Pagination.page_slice(commits, cursor_position)
 
-    row do
-      column(size: column_size) do
-        panel(title: title, height: height) do
-          label(content: "Project path: #{path}\n", color: :green)
+    viewport(offset_y: 0) do
+      row do
+        column(size: column_size) do
+          panel(title: title, height: height) do
+            label(content: "Project path: #{path}", color: :green)
 
-          label(
-            content: "#{page_size} commits of page #{page_number} / #{total_pages}\n",
-            color: :green
-          )
+            label(
+              content: "#{page_size} commits of page #{page_number} / #{total_pages}",
+              color: :green
+            )
 
-          row do
-            column(size: column_size) do
-              for %Commit{} = commit <- commits_to_display do
-                label do
-                  text(content: commit.hash, color: :red)
-                  text(content: " - ")
-                  text(content: commit.message)
-                  text(content: " ")
-                  text(content: commit.relative_date, color: :green)
+            label()
+
+            row do
+              column(size: column_size) do
+                for %Commit{} = commit <- commits_to_display do
+                  label do
+                    text(content: commit.hash, color: :red)
+                    text(content: " - ")
+                    text(content: commit.message)
+                    text(content: " ")
+                    text(content: commit.relative_date, color: :green)
+                  end
                 end
               end
             end
