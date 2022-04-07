@@ -5,6 +5,9 @@ defmodule TinyCareTerminal.Views.Components.Pagination do
 
   @page_size 10
 
+  @spec page_size() :: non_neg_integer()
+  def page_size, do: @page_size
+
   @spec total_pages(list(term()), non_neg_integer()) :: non_neg_integer()
   def total_pages(resources, total_page \\ @page_size)
 
