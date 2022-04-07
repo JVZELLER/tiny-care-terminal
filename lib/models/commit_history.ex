@@ -13,6 +13,6 @@ defmodule TinyCareTerminal.Models.CommitHistory do
           git_repo?: boolean()
         }
 
-  @spec create(map()) :: CommitHistory.t()
+  @spec create(map()) :: __MODULE__.t()
   def create(params), do: struct(__MODULE__, params)
 end
