@@ -18,7 +18,7 @@ defmodule TinyCareTerminal.Views.CommitHistory do
   @default_today_opts [column_size: 6, title: " 📆  Today "]
   @default_week_opts [column_size: 6, title: " 📆  Week ", height: :fill]
 
-  @spec render(State.t()) :: {Element.t(), Element.t()}
+  @spec render(State.t()) :: list(Element.t())
   def render(%{commit_history: %{git_repo?: false, repo_path: path}}) do
     no_repo = render_no_git_repo(@default_today_opts ++ [path: path])
 
@@ -95,7 +95,7 @@ defmodule TinyCareTerminal.Views.CommitHistory do
             label(content: "Project path: #{path}", color: :green)
 
             label(
-              content: "#{page_size} commits of page #{page_number} / #{total_pages}",
+              content: pagination_label(commits, page_size, page_number, total_pages),
               color: :green
             )
 
@@ -119,4 +119,9 @@ defmodule TinyCareTerminal.Views.CommitHistory do
       end
     end
   end
+
+  defp pagination_label([], _page_size, _page_number, _total_pages), do: "\nNo commits found..."
+
+  defp pagination_label(_commits, page_size, page_number, total_pages),
+    do: "#{page_size} commits of page #{page_number} / #{total_pages}"
 end
